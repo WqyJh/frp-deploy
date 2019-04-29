@@ -1,0 +1,20 @@
+[Unit]
+Description=Frp Server
+
+[Service]
+Type=simple
+ExecStart=/opt/frpc/frpc -c /opt/frpc/frpc.ini
+ExecReload=/usr/bin/frpc reload -c /etc/frp/frpc.ini
+KillMode=process
+
+Restart=always
+RestartSec=60
+StartLimitInterval=10
+StartLimitBurst=5
+
+User=nobody
+ProtectSystem=true
+ProtectHome=read-only
+
+[Install]
+WantedBy=multi-user.target

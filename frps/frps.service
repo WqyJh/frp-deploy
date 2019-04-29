@@ -1,0 +1,20 @@
+[Unit]
+Description=Frp Server
+
+[Service]
+Type=simple
+ExecStart=/opt/frps/frps -c /opt/frps/frps.ini
+KillMode=process
+
+Restart=always
+RestartSec=2
+StartLimitInterval=1
+StartLimitBurst=5
+
+User=nobody
+ProtectSystem=true
+ProtectHome=read-only
+
+[Install]
+WantedBy=multi-user.target
+
