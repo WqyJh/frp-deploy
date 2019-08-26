@@ -4,7 +4,7 @@ Description=Frp Server
 [Service]
 Type=simple
 ExecStart=/opt/frpc/frpc -c /opt/frpc/frpc.ini
-ExecReload=/usr/bin/frpc reload -c /etc/frp/frpc.ini
+ExecReload=/opt/bin/frpc reload -c /etc/frp/frpc.ini
 KillMode=process
 
 Restart=always
