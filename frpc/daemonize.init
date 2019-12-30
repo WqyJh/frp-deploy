@@ -1,27 +1,27 @@
 #!/bin/bash
 #
 # chkconfig: 2345 80 50
-# description: Frp server daemon
+# description: Frp client daemon
 #
 
 # Source function library.
 . /etc/init.d/functions
- 
+
 ### Default variables
-prog_name="frps"
-prog_path="/opt/frps/${prog_name}"
+prog_name="frpc"
+prog_path="/opt/frpc/${prog_name}"
 pidfile="/var/run/${prog_name}.pid"
-options="-c /opt/frps/frps.ini"
+options="-c /opt/frpc/frpc.ini"
 user="nobody"
- 
+
 # Check if requirements are met
 [ -x "${prog_path}" ] || exit 1
- 
+
 RETVAL=0
- 
+
 start(){
   echo -n $"Starting $prog_name: "
-  start-stop-daemon --background --pidfile $pidfile --make-pidfile --exec $prog_path -u $user --start -- $options && success || failure
+  daemonize -p $pidfile $prog_path $options
   RETVAL=$?
   PID=$(pidof ${prog_path})
   [ ! -z "${PID}" ] && echo ${PID} > ${pidfile}
@@ -29,21 +29,21 @@ start(){
   [ $RETVAL -eq 0 ] && touch /var/lock/subsys/$prog_name
   return $RETVAL
 }
- 
+
 stop(){
   echo -n $"Shutting down $prog_name: "
-  start-stop-daemon --exec $prog_path -u $user --stop && success || failure
+  killproc -p $pidfile $prog_path
   RETVAL=$?
   echo
   [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/$prog_name
   return $RETVAL
 }
- 
+
 restart() {
   stop
   start
 }
- 
+
 case "$1" in
   start)
     start
@@ -62,6 +62,5 @@ case "$1" in
     echo $"Usage: $0 {start|stop|restart|status}"
     RETVAL=1
 esac
- 
-exit $RETVAL
 
+exit $RETVAL
