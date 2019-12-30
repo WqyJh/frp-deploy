@@ -6,14 +6,25 @@ install_frps() {
   sudo chown -R nobody:nobody /opt/frps
   sudo chmod 0700 /opt/frps
   sudo setcap cap_net_bind_service=+eip /opt/frps/frps
-  
+
   if type systemctl > /dev/null; then
-    sudo ln -s /opt/frps/frps.service /lib/systemd/system
+    sudo ln -sf /opt/frps/frps.service /lib/systemd/system
     sudo systemctl daemon-reload
     sudo systemctl enable frps
     sudo systemctl start frps
   else
-    sudo ln -s /opt/frps/frps.init /etc/init.d/frps
+    if [ -x /sbin/start-stop-daemon ]; then
+      init_script=start-stop-daemon
+    elif [ -x /usr/sbin/daemonize ]; then
+      init_script=daemonize
+    else
+      echo "please install either start-stop-daemon or daemonize"
+      exit 1
+    fi
+
+    echo "init_script=${init_script}"
+
+    sudo ln -sf /opt/frps/${init_script}.init /etc/init.d/frps
     sudo service frps start
     sudo chkconfig --add frps
     sudo chkconfig frps on
@@ -27,12 +38,23 @@ install_frpc() {
   sudo chmod 0700 /opt/frpc
   
   if type systemctl > /dev/null; then
-    sudo ln -s /opt/frpc/frpc.service /lib/systemd/system
+    sudo ln -sf /opt/frpc/frpc.service /lib/systemd/system
     sudo systemctl daemon-reload
     sudo systemctl enable frpc
     sudo systemctl start frpc
   else
-    sudo ln -s /opt/frpc/frpc.init /etc/init.d/frpc
+    if [ -x /sbin/start-stop-daemon ]; then
+      init_script=start-stop-daemon
+    elif [ -x /usr/sbin/daemonize ]; then
+      init_script=daemonize
+    else
+        echo "please install either start-stop-daemon or daemonize"
+        exit 1
+    fi
+
+    echo "init_script=${init_script}"
+
+    sudo ln -sf /opt/frpc/${init_script}.init /etc/init.d/frpc
     sudo service frpc start
     sudo chkconfig --add frpc
     sudo chkconfig frpc on

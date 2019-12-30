@@ -1,0 +1,66 @@
+#!/bin/bash
+#
+# chkconfig: 2345 80 50
+# description: Frp client daemon
+#
+
+# Source function library.
+. /etc/init.d/functions
+
+### Default variables
+prog_name="frpc"
+prog_path="/opt/frpc/${prog_name}"
+pidfile="/var/run/${prog_name}.pid"
+options="-c /opt/frpc/frpc.ini"
+user="nobody"
+
+# Check if requirements are met
+[ -x "${prog_path}" ] || exit 1
+
+RETVAL=0
+
+start(){
+  echo -n $"Starting $prog_name: "
+  daemonize -p $pidfile $prog_path $options
+  RETVAL=$?
+  PID=$(pidof ${prog_path})
+  [ ! -z "${PID}" ] && echo ${PID} > ${pidfile}
+  echo
+  [ $RETVAL -eq 0 ] && touch /var/lock/subsys/$prog_name
+  return $RETVAL
+}
+
+stop(){
+  echo -n $"Shutting down $prog_name: "
+  killproc -p $pidfile $prog_path
+  RETVAL=$?
+  echo
+  [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/$prog_name
+  return $RETVAL
+}
+
+restart() {
+  stop
+  start
+}
+
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  restart)
+    restart
+    ;;
+  status)
+    status -p $pidfile
+    RETVAL=$?
+    ;;
+  *)
+    echo $"Usage: $0 {start|stop|restart|status}"
+    RETVAL=1
+esac
+
+exit $RETVAL
