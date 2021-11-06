@@ -1,0 +1,67 @@
+#!/bin/bash
+#
+# chkconfig: 2345 80 50
+# description: Frp server daemon
+#
+
+# Source function library.
+. /etc/init.d/functions
+
+### Default variables
+prog_name="frps"
+prog_path="/opt/frps/${prog_name}"
+pidfile="/var/run/${prog_name}.pid"
+options="-c /opt/frps/frps.ini"
+user="nobody"
+
+# Check if requirements are met
+[ -x "${prog_path}" ] || exit 1
+
+RETVAL=0
+
+start(){
+  echo -n $"Starting $prog_name: "
+  start-stop-daemon --background --pidfile $pidfile --make-pidfile --exec $prog_path -u $user --start -- $options && success || failure
+  RETVAL=$?
+  PID=$(pidof ${prog_path})
+  [ ! -z "${PID}" ] && echo ${PID} > ${pidfile}
+  echo
+  [ $RETVAL -eq 0 ] && touch /var/lock/subsys/$prog_name
+  return $RETVAL
+}
+
+stop(){
+  echo -n $"Shutting down $prog_name: "
+  start-stop-daemon --exec $prog_path -u $user --stop && success || failure
+  RETVAL=$?
+  echo
+  [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/$prog_name
+  return $RETVAL
+}
+
+restart() {
+  stop
+  start
+}
+
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  restart)
+    restart
+    ;;
+  status)
+    status -p $pidfile
+    RETVAL=$?
+    ;;
+  *)
+    echo $"Usage: $0 {start|stop|restart|status}"
+    RETVAL=1
+esac
+
+exit $RETVAL
+
